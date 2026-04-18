@@ -56,11 +56,15 @@ impl WindowMgr {
         )
     }
 
-    pub fn prg_loop(&mut self, ui_textures: &ChicagoSDLTexture) {
+    pub fn prg_loop(
+        &mut self,
+        ui_textures: &ChicagoSDLTexture,
+        font_textures: &mut ChicagoSDLTexture,
+    ) {
         while self.running {
             self.event();
             self.update();
-            self.render(ui_textures);
+            self.render(ui_textures, font_textures);
         }
     }
 
@@ -94,23 +98,62 @@ impl WindowMgr {
         println!("Mouse X: {} Y: {}", self.mouse_x, self.mouse_y)
     }
 
-    pub fn render(&mut self, _ui_textures: &ChicagoSDLTexture) {
+    pub fn render(
+        &mut self,
+        _ui_textures: &ChicagoSDLTexture,
+        _font_textures: &mut ChicagoSDLTexture,
+    ) {
         let canvas = &mut self.renderer.canvas;
 
         canvas.set_draw_color(Color::RGB(0x00, 0x80, 0x80));
         canvas.clear();
 
         draw_window_frame(canvas, 0, 0, self.window_width, self.window_height);
-        draw_button_normal(canvas, 5, 35, 100, 25, String::from("test"));
-        draw_button_pushed(canvas, 5, 15 + 35 + 5, 100, 25, String::from("test"));
+        draw_button_normal(canvas, _font_textures, 5, 35, 100, 25, String::from("test"));
+        draw_button_pushed(
+            canvas,
+            _font_textures,
+            5,
+            15 + 35 + 5,
+            100,
+            25,
+            String::from("test"),
+        );
         draw_input_buffer(canvas, 5, 100, 20, 1);
-        draw_progress_bar(canvas, 5, 150, 200, 64, 0.57);
+        draw_progress_bar(canvas, _font_textures, 5, 150, 200, 64, 0.57);
 
-        draw_button_normal(canvas, 50, 50, 16, 16, String::from(""));
+        draw_button_normal(canvas, _font_textures, 50, 50, 16, 16, String::from(""));
         _ui_textures.render_texture(canvas, 0, 50, 50, 1, 16);
-        _ui_textures.render_texture(canvas, 1, 50 + 8, 50, 1, 16);
-        _ui_textures.render_texture(canvas, 16, 50, 50 + 8, 1, 16);
-        _ui_textures.render_texture(canvas, 17, 50 + 8, 50 + 8, 1, 16);
+
+        draw_checkbox(
+            canvas,
+            _font_textures,
+            _ui_textures,
+            120,
+            220,
+            true,
+            String::from("This is a checkbox"),
+        );
+
+        draw_checkbox(
+            canvas,
+            _font_textures,
+            _ui_textures,
+            120,
+            250,
+            false,
+            String::from("This is a checkbox"),
+        );
+
+        draw_string_shadowed(
+            canvas,
+            _font_textures,
+            60,
+            60,
+            &String::from("This is a test string"),
+            0xFFFFFF,
+            1,
+        );
 
         canvas.present();
         thread::sleep(Duration::from_millis(16));

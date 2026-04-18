@@ -1,3 +1,4 @@
+use crate::texture::ChicagoSDLTexture;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use sdl2::render::WindowCanvas;
@@ -40,6 +41,7 @@ pub fn draw_window_frame(
 
 pub fn draw_button_normal(
     canvas: &mut WindowCanvas,
+    font_texture: &mut ChicagoSDLTexture,
     x: i32,
     y: i32,
     width: u32,
@@ -61,11 +63,20 @@ pub fn draw_button_normal(
         .fill_rect(Rect::new(x + 1, y + 1, width - 2, height - 2))
         .unwrap();
 
-    // TODO: draw_string
+    draw_string(
+        canvas,
+        font_texture,
+        x + (width / 2) as i32 - 8 * (text.len() / 2) as i32,
+        y + 8,
+        &text,
+        0,
+        1,
+    );
 }
 
 pub fn draw_button_pushed(
     canvas: &mut WindowCanvas,
+    font_texture: &mut ChicagoSDLTexture,
     x: i32,
     y: i32,
     width: u32,
@@ -87,12 +98,28 @@ pub fn draw_button_pushed(
         .fill_rect(Rect::new(x + 2, y + 2, width - 3, height - 3))
         .unwrap();
 
-    // TODO: draw_string
+    draw_string(
+        canvas,
+        font_texture,
+        x + (width / 2) as i32 - 8 * (text.len() / 2) as i32,
+        y + 8,
+        &text,
+        0,
+        1,
+    );
 }
 
-pub fn draw_checkbox(canvas: &mut WindowCanvas, x: i32, y: i32, is_checked: bool, text: String) {
-    // render_texture
-    // draw_string
+pub fn draw_checkbox(
+    canvas: &mut WindowCanvas,
+    font_texture: &mut ChicagoSDLTexture,
+    ui_texture: &ChicagoSDLTexture,
+    x: i32,
+    y: i32,
+    is_checked: bool,
+    text: String,
+) {
+    ui_texture.render_texture(canvas, if is_checked { 10 } else { 9 }, x, y, 1, 16);
+    draw_string(canvas, font_texture, x + 20, y + 4, &text, 0, 1);
 }
 
 pub fn draw_input_buffer(canvas: &mut WindowCanvas, x: i32, y: i32, cols: i32, rows: i32) {
@@ -118,6 +145,7 @@ pub fn draw_input_buffer(canvas: &mut WindowCanvas, x: i32, y: i32, cols: i32, r
 
 pub fn draw_progress_bar(
     canvas: &mut WindowCanvas,
+    font_texture: &mut ChicagoSDLTexture,
     x: i32,
     y: i32,
     width: u32,
@@ -152,5 +180,65 @@ pub fn draw_progress_bar(
             height - 4,
         ))
         .unwrap();
-    // Draw the string
+    draw_string(
+        canvas,
+        font_texture,
+        x + (width / 2) as i32 - 16,
+        y + 12,
+        &str_percent,
+        0xFFFFFF,
+        1,
+    );
+}
+
+const FONT_CHARS: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ|*^   0123456789.,!?'\"-+=/\\%()<>:;_   abcdefghijklmnopqrstuvwxyz█     ";
+
+pub fn draw_string(
+    canvas: &mut WindowCanvas,
+    font_texture: &mut ChicagoSDLTexture,
+    x: i32,
+    y: i32,
+    text: &String,
+    color: i32,
+    scale: i32,
+) {
+    font_texture.color_mod(color);
+
+    for (i, c) in text.chars().enumerate() {
+        let index = FONT_CHARS.find(c).unwrap();
+        let mut y_offset = 0;
+        if c == 'p' || c == 'g' || c == 'y' || c == 'q' {
+            y_offset = 1;
+        }
+
+        font_texture.render_texture(
+            canvas,
+            index as i32,
+            x + (i as i32) * (font_texture.pw * scale),
+            y + y_offset,
+            scale,
+            32,
+        );
+    }
+}
+
+pub fn draw_string_shadowed(
+    canvas: &mut WindowCanvas,
+    font_texture: &mut ChicagoSDLTexture,
+    x: i32,
+    y: i32,
+    text: &String,
+    color: i32,
+    scale: i32,
+) {
+    draw_string(
+        canvas,
+        font_texture,
+        x + scale,
+        y + scale,
+        text,
+        0x000000,
+        scale,
+    );
+    draw_string(canvas, font_texture, x, y, text, color, scale);
 }

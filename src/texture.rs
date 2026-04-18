@@ -64,6 +64,13 @@ impl<'a> ChicagoSDLTexture<'a> {
         &self.texture
     }
 
+    pub fn color_mod(&mut self, color: i32) {
+        let r = (color & 0xFF0000) >> 16;
+        let g = (color & 0x00FF00) >> 8;
+        let b = color & 0xFF;
+        self.texture.set_color_mod(r as u8, g as u8, b as u8);
+    }
+
     pub fn into_texture(self) -> Texture<'a> {
         self.texture
     }

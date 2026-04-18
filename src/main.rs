@@ -13,12 +13,22 @@ fn main() {
     let ui_textures = ChicagoSDLTexture::new(
         &texture_creator,
         String::from("res/uiAtlas.png"),
+        16,
+        16,
+        16,
+        16,
+    )
+    .expect("Error loading UI texture");
+
+    let mut font_textures = ChicagoSDLTexture::new(
+        &texture_creator,
+        String::from("res/fontAtlas.png"),
         8,
         8,
         16,
         16,
     )
-    .expect("Error loading texture");
+    .expect("Error loading font texture");
 
-    sdl_instance.prg_loop(&ui_textures);
+    sdl_instance.prg_loop(&ui_textures, &mut font_textures);
 }
