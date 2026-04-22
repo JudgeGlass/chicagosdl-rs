@@ -10,9 +10,13 @@ use sdl2::video::WindowContext;
 
 extern crate sdl2;
 
+use crate::component::Component;
 use crate::compositor::*;
 use crate::renderer::Renderer;
 use crate::texture::ChicagoSDLTexture;
+
+use crate::button::Button;
+use crate::window::Window;
 
 pub struct WindowMgr {
     pub context: Sdl,
@@ -22,6 +26,8 @@ pub struct WindowMgr {
     pub running: bool,
     pub window_width: u32,
     pub window_height: u32,
+    pub mouse1_pressed: bool,
+    pub components: Vec<Box<dyn Component>>,
 }
 
 impl WindowMgr {
@@ -51,6 +57,8 @@ impl WindowMgr {
                 running: true,
                 window_width,
                 window_height,
+                mouse1_pressed: false,
+                components: Vec::new(),
             },
             texture_creator,
         )
@@ -58,7 +66,7 @@ impl WindowMgr {
 
     pub fn prg_loop(
         &mut self,
-        ui_textures: &ChicagoSDLTexture,
+        ui_textures: &mut ChicagoSDLTexture,
         font_textures: &mut ChicagoSDLTexture,
     ) {
         while self.running {
@@ -74,6 +82,7 @@ impl WindowMgr {
         let events = &mut self.context.event_pump().unwrap();
         self.mouse_x = events.mouse_state().x() as u32;
         self.mouse_y = events.mouse_state().y() as u32;
+        self.mouse1_pressed = false;
         for event in events.poll_iter() {
             match event {
                 Event::Quit { .. } => self.running = false,
@@ -87,20 +96,27 @@ impl WindowMgr {
                     }
                 }
 
-                Event::MouseButtonDown { x: _, y: _, .. } => {}
+                Event::MouseButtonDown { x: _, y: _, .. } => {
+                    self.mouse1_pressed = true;
+                }
 
                 _ => {}
             }
         }
     }
 
-    pub fn update(&self) {
-        println!("Mouse X: {} Y: {}", self.mouse_x, self.mouse_y)
+    pub fn update(&mut self) {
+        // println!("Mouse X: {} Y: {}", self.mouse_x, self.mouse_y)
+        let mut components = std::mem::take(&mut self.components);
+        for comp in components.iter_mut() {
+            comp.update(self);
+        }
+        self.components = components;
     }
 
     pub fn render(
         &mut self,
-        _ui_textures: &ChicagoSDLTexture,
+        _ui_textures: &mut ChicagoSDLTexture,
         _font_textures: &mut ChicagoSDLTexture,
     ) {
         let canvas = &mut self.renderer.canvas;
@@ -108,52 +124,9 @@ impl WindowMgr {
         canvas.set_draw_color(Color::RGB(0x00, 0x80, 0x80));
         canvas.clear();
 
-        draw_window_frame(canvas, 0, 0, self.window_width, self.window_height);
-        draw_button_normal(canvas, _font_textures, 5, 35, 100, 25, String::from("test"));
-        draw_button_pushed(
-            canvas,
-            _font_textures,
-            5,
-            15 + 35 + 5,
-            100,
-            25,
-            String::from("test"),
-        );
-        draw_input_buffer(canvas, 5, 100, 20, 1);
-        draw_progress_bar(canvas, _font_textures, 5, 150, 200, 64, 0.57);
-
-        draw_button_normal(canvas, _font_textures, 50, 50, 16, 16, String::from(""));
-        _ui_textures.render_texture(canvas, 0, 50, 50, 1, 16);
-
-        draw_checkbox(
-            canvas,
-            _font_textures,
-            _ui_textures,
-            120,
-            220,
-            true,
-            String::from("This is a checkbox"),
-        );
-
-        draw_checkbox(
-            canvas,
-            _font_textures,
-            _ui_textures,
-            120,
-            250,
-            false,
-            String::from("This is a checkbox"),
-        );
-
-        draw_string_shadowed(
-            canvas,
-            _font_textures,
-            60,
-            60,
-            &String::from("This is a test string"),
-            0xFFFFFF,
-            1,
-        );
+        for comp in &self.components {
+            comp.render(canvas, _font_textures, _ui_textures);
+        }
 
         canvas.present();
         thread::sleep(Duration::from_millis(16));

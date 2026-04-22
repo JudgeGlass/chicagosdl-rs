@@ -46,7 +46,7 @@ pub fn draw_button_normal(
     y: i32,
     width: u32,
     height: u32,
-    text: String,
+    text: &String,
 ) {
     canvas.set_draw_color(Color::RGB(0x0, 0x0, 0x0));
     canvas.draw_rect(Rect::new(x, y, width, height)).unwrap();
@@ -81,7 +81,7 @@ pub fn draw_button_pushed(
     y: i32,
     width: u32,
     height: u32,
-    text: String,
+    text: &String,
 ) {
     canvas.set_draw_color(Color::RGB(0x0, 0x0, 0x0));
     canvas.fill_rect(Rect::new(x, y, width, height)).unwrap();
@@ -103,7 +103,7 @@ pub fn draw_button_pushed(
         font_texture,
         x + (width / 2) as i32 - 8 * (text.len() / 2) as i32,
         y + 8,
-        &text,
+        text,
         0,
         1,
     );
